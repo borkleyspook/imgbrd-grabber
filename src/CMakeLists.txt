@@ -50,7 +50,9 @@ if(NOT DEFINED VERSION_PLATFORM)
 		set(VERSION_PLATFORM "x86")
 	endif()
 endif()
-set(USE_SSL 1)
+if(NOT DEFINED USE_SSL)
+	set(USE_SSL 1)
+endif()
 
 # Android settings
 set(ANDROID_APP_NAME ${PROJECT_NAME})
