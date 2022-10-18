@@ -551,11 +551,6 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Install packages
-      run: |
-        sudo apt update
-        sudo apt install libpulse-dev
-
     - name: Cache Qt
       id: cache-qt
       uses: actions/cache@v1
