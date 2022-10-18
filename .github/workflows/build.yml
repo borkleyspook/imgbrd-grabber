@@ -535,6 +535,59 @@ jobs:
           path: Grabber_${{ matrix.suffix }}_symbols.zip
           if-no-files-found: error
 
+  ios:
+    name: iOS
+    runs-on: macos-latest
+    needs: version
+
+    env:
+      GRABBER_VERSION: ${{ needs.version.outputs.version }}
+      GRABBER_IS_NIGHTLY: ${{ needs.version.outputs.nightly }}
+      PLATFORM_NAME: x64
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+      with:
+        submodules: recursive
+
+    - name: Install packages
+      run: |
+        sudo apt update
+        sudo apt install libpulse-dev
+
+    - name: Cache Qt
+      id: cache-qt
+      uses: actions/cache@v1
+      with:
+        path: ../Qt
+        key: ${{ runner.os }}-ios-QtCache-${{ env.QT_VERSION }}-${{ env.QT_MODULES }}
+
+    - name: Install Qt
+      uses: jurplel/install-qt-action@v2
+      with:
+        cached: ${{ steps.cache-qt.outputs.cache-hit }}
+        version: ${{ env.QT_VERSION }}
+        modules: ${{ env.QT_MODULES }}
+        target: ios
+        arch: ios
+
+    - name: Create build dir
+      run: |
+        mkdir build
+        cd build
+        cmake ../src -DCMAKE_BUILD_TYPE=Release -DNIGHTLY=$GRABBER_IS_NIGHTLY -DCOMMIT="$GITHUB_SHA" -DVERSION="$GRABBER_VERSION" \
+          -DUSE_SSL=0 -DCONFIG+=iphoneos -DCMAKE_SYSTEM_NAME=iOS
+        cmake --build . --config Release --target sites
+        cmake --build . --config Release --target gui-qml
+#        cmake --build . --config Release --target gui
+
+    - name: Upload package
+      uses: actions/upload-artifact@v2
+      with:
+        name: IOS
+        path: bin
+
   android:
     name: Android
     runs-on: ubuntu-latest
